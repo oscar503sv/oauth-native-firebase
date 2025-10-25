@@ -1,14 +1,29 @@
 import React, { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert, ActivityIndicator } from 'react-native';
 import { signInWithEmailAndPassword, GoogleAuthProvider, signInWithCredential } from 'firebase/auth';
+import { GoogleSignin, statusCodes,} from '@react-native-google-signin/google-signin';
 import { auth } from '../config/firebase';
 
+// Configuración de Google Sign-In con el Web Client ID desde variables de entorno
+GoogleSignin.configure({
+  webClientId: process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID,
+});
+
+/**
+ * Pantalla de inicio de sesión
+ * Permite autenticación con email/contraseña y Google Sign-In
+ */
 export default function LoginScreen({ navigation }: any) {
+  // Estados locales para el formulario
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
 
+  /**
+   * Maneja el inicio de sesión con email y contraseña
+   */
   const handleEmailLogin = async () => {
+    // Validación de campos requeridos
     if (!email || !password) {
       Alert.alert('Error', 'Por favor completa todos los campos');
       return;
@@ -16,11 +31,13 @@ export default function LoginScreen({ navigation }: any) {
 
     setLoading(true);
     try {
+      // Autenticación con Firebase Auth
       await signInWithEmailAndPassword(auth, email, password);
       navigation.replace('Home');
     } catch (error: any) {
       let errorMessage = 'Error al iniciar sesión';
       
+      // Manejo de errores específicos de Firebase
       if (error.code === 'auth/invalid-email') {
         errorMessage = 'Correo electrónico inválido';
       } else if (error.code === 'auth/user-not-found') {
@@ -35,15 +52,54 @@ export default function LoginScreen({ navigation }: any) {
     }
   };
 
+  /**
+   * Maneja el inicio de sesión con Google
+   */
   const handleGoogleLogin = async () => {
-    // TODO: Para implementar Google Sign-In se necesita:
-    // * 1. Configurar Google Sign-In en Firebase Console
-    // * 2. Instalar @react-native-google-signin/google-signin por npm
-    // * 3. Configurar las credenciales de OAuth
-    Alert.alert(
-      'Google Sign-In',
-      'Para implementar esta funcionalidad, falta configurar Google Sign-In en Firebase Console y agregar las credenciales de OAuth.'
-    );
+    setLoading(true);
+    try {
+      // Verificar si el dispositivo soporta Google Play Services
+      await GoogleSignin.hasPlayServices({ showPlayServicesUpdateDialog: true });
+      
+      // Obtener el token de ID del usuario
+      const signInResult = await GoogleSignin.signIn();
+
+      // Intentar obtener el token de ID (versión nueva del módulo v13+)
+      let idToken = signInResult.data?.idToken;
+      if (!idToken) {
+        // Si se usa una versión anterior de google-signin, usar el estilo anterior
+        idToken = (signInResult as any).idToken;
+      }
+      if (!idToken) {
+        throw new Error('No ID token found');
+      }
+
+      // Crear credencial de Google con el token
+      const googleCredential = GoogleAuthProvider.credential(idToken);
+
+      // Autenticar al usuario con la credencial en Firebase
+      await signInWithCredential(auth, googleCredential);
+      
+      // Navegar a la pantalla Home si es exitoso
+      navigation.replace('Home');
+      
+    } catch (error: any) {
+      console.error('Google Sign-In Error:', error);
+      
+      // Manejo de errores específicos de Google Sign-In
+      if (error.code === statusCodes.SIGN_IN_CANCELLED) {
+        // Usuario canceló el proceso de inicio de sesión
+        Alert.alert('Cancelado', 'Inicio de sesión cancelado por el usuario');
+      } else if (error.code === statusCodes.IN_PROGRESS) {
+        Alert.alert('En progreso', 'Operación de inicio de sesión ya en progreso');
+      } else if (error.code === statusCodes.PLAY_SERVICES_NOT_AVAILABLE) {
+        Alert.alert('Error', 'Google Play Services no disponible o desactualizado');
+      } else {
+        Alert.alert('Error', 'Error al iniciar sesión con Google: ' + error.message);
+      }
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -51,6 +107,7 @@ export default function LoginScreen({ navigation }: any) {
       <Text style={styles.title}>Iniciar sesión</Text>
       <Text style={styles.subtitle}>Para iniciar sesión, completa los campos</Text>
       
+      {/* Campo de entrada para email */}
       <TextInput
         style={styles.input}
         placeholder="Correo electrónico"
@@ -63,6 +120,7 @@ export default function LoginScreen({ navigation }: any) {
         editable={!loading}
       />
       
+      {/* Campo de entrada para contraseña */}
       <TextInput
         style={styles.input}
         placeholder="Contraseña"
@@ -74,6 +132,7 @@ export default function LoginScreen({ navigation }: any) {
         editable={!loading}
       />
       
+      {/* Botón de inicio de sesión con email */}
       <TouchableOpacity 
         style={[styles.button, loading && styles.buttonDisabled]} 
         onPress={handleEmailLogin}
@@ -86,12 +145,14 @@ export default function LoginScreen({ navigation }: any) {
         )}
       </TouchableOpacity>
       
+      {/* Divisor entre métodos de autenticación */}
       <View style={styles.divider}>
         <View style={styles.dividerLine} />
         <Text style={styles.dividerText}>O</Text>
         <View style={styles.dividerLine} />
       </View>
       
+      {/* Botón de inicio de sesión con Google */}
       <TouchableOpacity 
         style={styles.googleButton} 
         onPress={handleGoogleLogin}
@@ -100,6 +161,7 @@ export default function LoginScreen({ navigation }: any) {
         <Text style={styles.buttonText}>Iniciar sesión con Google</Text>
       </TouchableOpacity>
       
+      {/* Enlace para ir a la pantalla de registro */}
       <TouchableOpacity 
         onPress={() => navigation.navigate('Register')}
         disabled={loading}
@@ -110,6 +172,7 @@ export default function LoginScreen({ navigation }: any) {
   );
 }
 
+// Estilos para los componentes de la pantalla de login
 const styles = StyleSheet.create({
   container: {
     flex: 1,
