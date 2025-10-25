@@ -1,11 +1,14 @@
-// Import the functions you need from the SDKs you need
+/**
+ * Configuración de Firebase para la aplicación
+ * Inicializa los servicios de Firebase y exporta las instancias necesarias
+ */
+
+// Importar las funciones necesarias de los SDKs de Firebase
 import { initializeApp } from "firebase/app";
 import { getAuth } from "firebase/auth";
-// TODO: Add SDKs for Firebase products that you want to use
-// https://firebase.google.com/docs/web/setup#available-libraries
 
-// Your web app's Firebase configuration
-// For Firebase JS SDK v7.20.0 and later, measurementId is optional
+// Configuración de la aplicación Firebase
+// Las credenciales se obtienen de las variables de entorno por seguridad
 const firebaseConfig = {
   apiKey: process.env.EXPO_PUBLIC_FIREBASE_API_KEY,
   authDomain: process.env.EXPO_PUBLIC_FIREBASE_AUTH_DOMAIN,
@@ -16,8 +19,8 @@ const firebaseConfig = {
   measurementId: process.env.EXPO_PUBLIC_FIREBASE_MEASUREMENT_ID
 };
 
-// Initialize Firebase
+// Inicializar la aplicación Firebase
 export const app = initializeApp(firebaseConfig);
 
-// Initialize Firebase Authentication and export it
+// Inicializar Firebase Authentication y exportarlo para uso en la app
 export const auth = getAuth(app);

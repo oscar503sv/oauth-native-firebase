@@ -3,24 +3,35 @@ import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert, ActivityInd
 import { createUserWithEmailAndPassword } from 'firebase/auth';
 import { auth } from '../config/firebase';
 
+/**
+ * Pantalla de registro de nuevos usuarios
+ * Permite crear una cuenta con email y contraseña
+ */
 export default function RegisterScreen({ navigation }: any) {
+  // Estados locales para el formulario de registro
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [loading, setLoading] = useState(false);
 
+  /**
+   * Maneja el registro de un nuevo usuario
+   * Incluye validaciones de campos y creación de cuenta en Firebase
+   */
   const handleRegister = async () => {
-    // Validaciones
+    // Validar que todos los campos estén completos
     if (!email || !password || !confirmPassword) {
       Alert.alert('Error', 'Por favor completa todos los campos');
       return;
     }
 
+    // Validar que las contraseñas coincidan
     if (password !== confirmPassword) {
       Alert.alert('Error', 'Las contraseñas no coinciden');
       return;
     }
 
+    // Validar longitud mínima de contraseña
     if (password.length < 6) {
       Alert.alert('Error', 'La contraseña debe tener al menos 6 caracteres');
       return;
@@ -28,6 +39,7 @@ export default function RegisterScreen({ navigation }: any) {
 
     setLoading(true);
     try {
+      // Crear usuario en Firebase Auth
       await createUserWithEmailAndPassword(auth, email, password);
       Alert.alert(
         '¡Éxito!',
@@ -42,6 +54,7 @@ export default function RegisterScreen({ navigation }: any) {
     } catch (error: any) {
       let errorMessage = 'Error al registrar usuario';
       
+      // Manejo de errores específicos de Firebase
       if (error.code === 'auth/email-already-in-use') {
         errorMessage = 'Este correo electrónico ya está registrado';
       } else if (error.code === 'auth/invalid-email') {
@@ -62,6 +75,7 @@ export default function RegisterScreen({ navigation }: any) {
         <Text style={styles.title}>Crear Cuenta</Text>
         <Text style={styles.subtitle}>Regístrate para comenzar</Text>
         
+        {/* Campo de entrada para email */}
         <TextInput
           style={styles.input}
           placeholder="Correo electrónico"
@@ -74,6 +88,7 @@ export default function RegisterScreen({ navigation }: any) {
           editable={!loading}
         />
         
+        {/* Campo de entrada para contraseña */}
         <TextInput
           style={styles.input}
           placeholder="Contraseña (mínimo 6 caracteres)"
@@ -85,6 +100,7 @@ export default function RegisterScreen({ navigation }: any) {
           editable={!loading}
         />
         
+        {/* Campo de confirmación de contraseña */}
         <TextInput
           style={styles.input}
           placeholder="Confirmar contraseña"
@@ -96,6 +112,7 @@ export default function RegisterScreen({ navigation }: any) {
           editable={!loading}
         />
         
+        {/* Botón de registro */}
         <TouchableOpacity 
           style={[styles.button, loading && styles.buttonDisabled]} 
           onPress={handleRegister}
@@ -108,6 +125,7 @@ export default function RegisterScreen({ navigation }: any) {
           )}
         </TouchableOpacity>
         
+        {/* Enlace para volver al login */}
         <TouchableOpacity 
           onPress={() => navigation.goBack()}
           disabled={loading}
@@ -119,6 +137,7 @@ export default function RegisterScreen({ navigation }: any) {
   );
 }
 
+// Estilos para los componentes de la pantalla de registro
 const styles = StyleSheet.create({
   scrollContainer: {
     flexGrow: 1,

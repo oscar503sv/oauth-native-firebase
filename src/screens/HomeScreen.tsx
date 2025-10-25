@@ -3,10 +3,20 @@ import { View, Text, TouchableOpacity, StyleSheet, Alert } from 'react-native';
 import { signOut } from 'firebase/auth';
 import { auth } from '../config/firebase';
 
+/**
+ * Pantalla principal de la aplicación
+ * Muestra información del usuario autenticado y permite cerrar sesión
+ */
 export default function HomeScreen({ navigation }: any) {
+  // Obtener el usuario actualmente autenticado
   const user = auth.currentUser;
 
+  /**
+   * Maneja el cierre de sesión del usuario
+   * Muestra una confirmación antes de proceder
+   */
   const handleLogout = async () => {
+    // Mostrar alerta de confirmación
     Alert.alert(
       'Cerrar Sesión',
       '¿Estás seguro que deseas cerrar sesión?',
@@ -20,6 +30,7 @@ export default function HomeScreen({ navigation }: any) {
           style: 'destructive',
           onPress: async () => {
             try {
+              // Cerrar sesión en Firebase
               await signOut(auth);
               navigation.replace('Login');
             } catch (error: any) {
@@ -33,12 +44,15 @@ export default function HomeScreen({ navigation }: any) {
 
   return (
     <View style={styles.container}>
+      {/* Encabezado con saludo y email del usuario */}
       <View style={styles.header}>
         <Text style={styles.welcomeText}>¡Bienvenido! 👋</Text>
         <Text style={styles.emailText}>{user?.email}</Text>
       </View>
 
+      {/* Contenido principal */}
       <View style={styles.content}>
+        {/* Tarjeta de confirmación de login exitoso */}
         <View style={styles.card}>
           <Text style={styles.cardTitle}>🎉 Login Exitoso</Text>
           <Text style={styles.cardText}>
@@ -46,6 +60,7 @@ export default function HomeScreen({ navigation }: any) {
           </Text>
         </View>
 
+        {/* Tarjeta con información del perfil del usuario */}
         <View style={styles.card}>
           <Text style={styles.cardTitle}>📱 Tu Perfil</Text>
           <View style={styles.infoRow}>
@@ -67,6 +82,7 @@ export default function HomeScreen({ navigation }: any) {
         </View>
       </View>
 
+      {/* Botón para cerrar sesión */}
       <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
         <Text style={styles.logoutButtonText}>Cerrar Sesión</Text>
       </TouchableOpacity>
@@ -74,6 +90,7 @@ export default function HomeScreen({ navigation }: any) {
   );
 }
 
+// Estilos para los componentes de la pantalla principal
 const styles = StyleSheet.create({
   container: {
     flex: 1,
