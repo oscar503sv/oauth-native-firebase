@@ -58,10 +58,14 @@ export default function LoginScreen({ navigation }: any) {
   const handleGoogleLogin = async () => {
     setLoading(true);
     try {
+      // Primero, cerrar cualquier sesión de Google existente para forzar la selección de cuenta
+      await GoogleSignin.signOut();
+      
       // Verificar si el dispositivo soporta Google Play Services
       await GoogleSignin.hasPlayServices({ showPlayServicesUpdateDialog: true });
       
       // Obtener el token de ID del usuario
+      // Al usar signIn después de signOut, siempre mostrará el selector de cuenta
       const signInResult = await GoogleSignin.signIn();
 
       // Intentar obtener el token de ID (versión nueva del módulo v13+)
